@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="おしたく">
+<meta name="theme-color" content="#FFF9F0">
+<title>あさのおしたくボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --green: #4CAF50;
+    --green-light: #E8F5E9;
+    --green-text: #2E7D32;
+    --amber: #FF8F00;
+    --amber-light: #FFF8E1;
+    --text: #2C2C2C;
+    --muted: #888;
+    --border: #E8E0D8;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: calc(var(--safe-top) + 12px) 16px calc(var(--safe-bottom) + 24px);
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 20px; }
+  .header-title { font-size: 22px; font-weight: 700; letter-spacing: 0.05em; color: var(--text); }
+  .header-sun { font-size: 32px; display: block; margin-bottom: 4px; }
+  .header-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .progress-count { font-size: 13px; color: var(--muted); }
+  .progress-pct { font-size: 18px; font-weight: 700; color: var(--green); }
+  .progress-track {
+    height: 14px; background: #E8E0D8; border-radius: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #66BB6A, #43A047);
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+
+  /* Section */
+  .section { margin-bottom: 14px; }
+  .section-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 4px; margin-bottom: 8px;
+  }
+  .section-time {
+    font-size: 13px; font-weight: 700; color: var(--amber);
+    background: var(--amber-light); border-radius: 8px;
+    padding: 3px 10px; white-space: nowrap;
+  }
+  .section-label { font-size: 14px; color: var(--muted); font-weight: 700; }
+
+  /* Task card */
+  .task {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card); border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.12s, background 0.25s, border-color 0.25s;
+    -webkit-user-select: none; user-select: none;
+    position: relative; overflow: hidden;
+  }
+  .task:active { transform: scale(0.97); }
+  .task.done {
+    background: var(--green-light);
+    border-color: #A5D6A7;
+  }
+  .task-emoji { font-size: 28px; flex-shrink: 0; }
+  .task-body { flex: 1; }
+  .task-name { font-size: 17px; font-weight: 700; }
+  .task-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .task.done .task-name { color: var(--green-text); text-decoration: line-through; text-decoration-color: #A5D6A7; }
+  .task.done .task-hint { color: #81C784; }
+  .task-check {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 16px;
+  }
+  .task.done .task-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  /* Bag grid */
+  .bag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bag-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px;
+    background: var(--card); border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 14px 8px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.12s, background 0.25s, border-color 0.25s;
+    -webkit-user-select: none; user-select: none;
+    text-align: center;
+    min-height: 80px;
+  }
+  .bag-item:active { transform: scale(0.96); }
+  .bag-item.done { background: var(--green-light); border-color: #A5D6A7; }
+  .bag-emoji { font-size: 26px; }
+  .bag-name { font-size: 14px; font-weight: 700; }
+  .bag-sub { font-size: 11px; color: var(--muted); }
+  .bag-item.done .bag-name { color: var(--green-text); }
+  .bag-item.done .bag-sub { color: #81C784; }
+  .bag-checkmark { font-size: 13px; color: var(--green); display: none; }
+  .bag-item.done .bag-checkmark { display: block; }
+
+  /* Depart banner */
+  .depart {
+    background: white; border: 1.5px solid #A5D6A7;
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .depart-time { font-size: 22px; font-weight: 700; color: var(--green); white-space: nowrap; }
+  .depart-label { font-size: 15px; font-weight: 700; color: var(--green-text); }
+  .depart-sub { font-size: 12px; color: #81C784; }
+
+  /* Fanfare */
+  .fanfare {
+    display: none; text-align: center;
+    background: white; border: 2px solid #A5D6A7;
+    border-radius: var(--radius); padding: 20px;
+    margin: 16px 0; box-shadow: 0 4px 20px rgba(76,175,80,0.2);
+  }
+  .fanfare.show { display: block; animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  .fanfare-emoji { font-size: 44px; display: block; margin-bottom: 8px; }
+  .fanfare-text { font-size: 20px; font-weight: 700; color: var(--green-text); }
+  .fanfare-sub { font-size: 14px; color: #81C784; margin-top: 4px; }
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Reset */
+  .reset-btn {
+    display: block; width: 100%; margin-top: 20px;
+    background: transparent; border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 13px;
+    font-size: 14px; font-family: 'Noto Sans JP', sans-serif;
+    color: var(--muted); cursor: pointer;
+  }
+  .reset-btn:active { background: #F0EBE3; }
+
+  /* Install hint */
+  .install-hint {
+    margin-top: 16px;
+    background: #E3F2FD; border: 1px solid #90CAF9;
+    border-radius: 12px; padding: 12px 14px;
+    font-size: 12px; color: #1565C0; line-height: 1.7;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .install-hint-icon { font-size: 20px; flex-shrink: 0; }
+  .install-hint-close {
+    margin-left: auto; flex-shrink: 0;
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; color: #90CAF9; padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-sun">🌞</span>
+  <div class="header-title">あさのおしたくボード</div>
+  <div class="header-sub">ぜんぶできたら しゅっぱつ！</div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-top">
+    <span class="progress-count" id="prog-count">0 / 11 できた</span>
+    <span class="progress-pct" id="prog-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="prog-fill"></div>
+  </div>
+</div>
+
+<div class="fanfare" id="fanfare">
+  <span class="fanfare-emoji">🎉</span>
+  <div class="fanfare-text">ぜんぶできた！</div>
+  <div class="fanfare-sub">いってらっしゃい！いいいちにちをね🎒</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-time">6:30</span>
+    <span class="section-label">おきる・たべる</span>
+  </div>
+  <div class="task" data-id="t1" onclick="toggle(this)">
+    <span class="task-emoji">🍳</span>
+    <div class="task-body">
+      <div class="task-name">あさごはん</div>
+      <div class="task-hint">しっかりたべてね</div>
+    </div>
+    <div class="task-check">✓</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-time">7:10</span>
+    <span class="section-label">からだをきれいに</span>
+  </div>
+  <div class="task" data-id="t2" onclick="toggle(this)">
+    <span class="task-emoji">🦷</span>
+    <div class="task-body">
+      <div class="task-name">はみがき</div>
+      <div class="task-hint">おくばもわすれずに</div>
+    </div>
+    <div class="task-check">✓</div>
+  </div>
+  <div class="task" data-id="t3" onclick="toggle(this)">
+    <span class="task-emoji">🚿</span>
+    <div class="task-body">
+      <div class="task-name">シャワー</div>
+      <div class="task-hint">あたまもあらってね</div>
+    </div>
+    <div class="task-check">✓</div>
+  </div>
+  <div class="task" data-id="t4" onclick="toggle(this)">
+    <span class="task-emoji">👕</span>
+    <div class="task-body">
+      <div class="task-name">きがえ</div>
+      <div class="task-hint">きょうのふくにきがえよう</div>
+    </div>
+    <div class="task-check">✓</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-time">7:30</span>
+    <span class="section-label">もちもの チェック</span>
+  </div>
+
+  <!-- ポケット・身につけるもの -->
+  <div class="bag-grid" style="margin-bottom: 10px;">
+    <div class="bag-item" data-id="b1" onclick="toggle(this)">
+      <span class="bag-emoji">🧻</span>
+      <div class="bag-name">ハンカチ</div>
+      <div class="bag-checkmark">✓ できた</div>
+    </div>
+    <div class="bag-item" data-id="b2" onclick="toggle(this)">
+      <span class="bag-emoji">🤧</span>
+      <div class="bag-name">ティッシュ</div>
+      <div class="bag-checkmark">✓ できた</div>
+    </div>
+    <div class="bag-item" data-id="b6" onclick="toggle(this)">
+      <span class="bag-emoji">🧢</span>
+      <div class="bag-name">ぼうし</div>
+      <div class="bag-checkmark">✓ できた</div>
+    </div>
+  </div>
+
+  <!-- ランドセルの中身 -->
+  <div style="background: #FFF8E1; border: 1.5px solid #FFE082; border-radius: var(--radius); padding: 10px 12px; margin-bottom: 4px;">
+    <div style="font-size: 13px; font-weight: 700; color: #FF8F00; margin-bottom: 8px; display:flex; align-items:center; gap:6px;">
+      <span>🎒</span> ランドセルのなかみ
+    </div>
+    <div class="bag-grid">
+      <div class="bag-item" data-id="b3" onclick="toggle(this)" style="background:white;">
+        <span class="bag-emoji">⭐</span>
+        <div class="bag-name">まいにち</div>
+        <div class="bag-sub">セット</div>
+        <div class="bag-checkmark">✓ できた</div>
+      </div>
+      <div class="bag-item" data-id="b4" onclick="toggle(this)" style="background:white;">
+        <span class="bag-emoji">📝</span>
+        <div class="bag-name">しゅくだい</div>
+        <div class="bag-checkmark">✓ できた</div>
+      </div>
+      <div class="bag-item" data-id="b5" onclick="toggle(this)" style="background:white;">
+        <span class="bag-emoji">🍱</span>
+        <div class="bag-name">きゅうしょく</div>
+        <div class="bag-sub">セット</div>
+        <div class="bag-checkmark">✓ できた</div>
+      </div>
+      <div class="bag-item" data-id="b7" onclick="toggle(this)" style="background:white;">
+        <span class="bag-emoji">📚</span>
+        <div class="bag-name">じゅぎょうの</div>
+        <div class="bag-sub">したく</div>
+        <div class="bag-checkmark">✓ できた</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-time" style="background:#E8F5E9; color:#2E7D32;">8:00</span>
+    <span class="section-label">しゅっぱつ！</span>
+  </div>
+  <div class="depart">
+    <div>
+      <div class="depart-label">🚶 いってらっしゃい！</div>
+      <div class="depart-sub">8じまでにでかけよう</div>
+    </div>
+  </div>
+</div>
+
+<div class="install-hint" id="install-hint">
+  <span class="install-hint-icon">📲</span>
+  <div>
+    <b>ホーム画面に追加するには：</b><br>
+    Safariの下の「共有ボタン（□↑）」→「ホーム画面に追加」をタップ
+  </div>
+  <button class="install-hint-close" onclick="closeHint()">✕</button>
+</div>
+
+<button class="reset-btn" onclick="reset()">↺ リセットして はじめから</button>
+
+<script>
+  const TOTAL = 11;
+  const STORAGE_KEY = 'oshitaku_done';
+
+  function load() {
+    try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+    catch { return new Set(); }
+  }
+  function save(s) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...s])); } catch {}
+  }
+
+  let done = load();
+
+  function toggle(el) {
+    const id = el.dataset.id;
+    if (done.has(id)) { done.delete(id); el.classList.remove('done'); }
+    else { done.add(id); el.classList.add('done'); }
+    save(done);
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const n = done.size;
+    const pct = Math.round(n / TOTAL * 100);
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-count').textContent = n + ' / ' + TOTAL + ' できた';
+    document.getElementById('prog-pct').textContent = pct + '%';
+    const f = document.getElementById('fanfare');
+    if (n === TOTAL) { f.classList.add('show'); }
+    else { f.classList.remove('show'); }
+  }
+
+  function reset() {
+    if (!confirm('リセットしますか？')) return;
+    done.clear(); save(done);
+    document.querySelectorAll('.task, .bag-item').forEach(el => el.classList.remove('done'));
+    updateProgress();
+  }
+
+  function closeHint() {
+    document.getElementById('install-hint').style.display = 'none';
+    try { localStorage.setItem('hint_closed', '1'); } catch {}
+  }
+
+  // Restore state
+  done.forEach(id => {
+    const el = document.querySelector('[data-id="' + id + '"]');
+    if (el) el.classList.add('done');
+  });
+  updateProgress();
+
+  // Hide hint if already closed
+  try { if (localStorage.getItem('hint_closed')) closeHint(); } catch {}
+
+  // Hide hint when running as PWA
+  if (window.navigator.standalone) closeHint();
+</script>
+</body>
+</html>
